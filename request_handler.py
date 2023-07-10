@@ -138,7 +138,7 @@ class HandleRequests(BaseHTTPRequestHandler):
         if resource == "customers":
             new_post = create_customer(post_body)
 
-        # Encode the new animal and send in response
+        # Encode the new item and send in response
         self.wfile.write(json.dumps(new_post).encode())
 
     # A method that handles any PUT request.
