@@ -7,12 +7,15 @@ from views import delete_animal
 from views import get_all_locations
 from views import get_single_location
 from views import create_location
+from views import delete_location
 from views import get_all_employees
 from views import get_single_employee
 from views import create_employee
+from views import delete_employee
 from views import get_all_customers
 from views import get_single_customer
 from views import create_customer
+from views import delete_customer
 
 
 # Here's a class. It inherits from another class.
@@ -150,6 +153,18 @@ class HandleRequests(BaseHTTPRequestHandler):
         # Delete a single animal from the list
         if resource == "animals":
             delete_animal(id)
+
+        # Delete a location
+        if resource == "locations":
+            delete_location(id)
+
+        # Delete an employee
+        if resource == "employees":
+            delete_employee(id)
+
+        # Delete customer
+        if resource == "customers":
+            delete_customer(id)
 
         # Encode the new animal and send in response
         self.wfile.write("".encode())
