@@ -2,6 +2,8 @@ import json
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from views import get_all_animals
 from views import get_single_animal
+from views import get_all_locations
+from views import get_single_location
 
 
 # Here's a class. It inherits from another class.
@@ -55,6 +57,7 @@ class HandleRequests(BaseHTTPRequestHandler):
         # Parse the URL and capture the tuple that is returned
         (resource, id) = self.parse_url(self.path)
 
+        # Check if resource is animals
         # It's an if..else statement
         if resource == "animals":
             if id is not None:
@@ -63,6 +66,13 @@ class HandleRequests(BaseHTTPRequestHandler):
             else:
                 response = get_all_animals()
 
+        # Check if resource is locations
+        if resource == "locations":
+            if id is not None:
+                response = get_single_location(id)
+            else:
+                response = get_all_locations()
+        
         # Send a JSON formatted string as a response
         self.wfile.write(json.dumps(response).encode())
 
