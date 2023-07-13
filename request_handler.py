@@ -134,7 +134,6 @@ class HandleRequests(BaseHTTPRequestHandler):
     def do_POST(self):
         """Handle POST requests made to server"""
 
-        self._set_headers(201)
         content_len = int(self.headers.get('content-length', 0))
         post_body = self.rfile.read(content_len)
 
@@ -145,27 +144,65 @@ class HandleRequests(BaseHTTPRequestHandler):
         (resource, _) = self.parse_url(self.path)
 
         # Initialize new item to post
-        new_post = None
+        response = None
+
+        # Define function that finds any missing keys on the post body
+        def find_missing_keys(post_dictionary, list_of_keys):
+            message = []
+            for key in list_of_keys:
+                if key not in post_dictionary:
+                    message.append({ "message": f"{key} is required" })
+            if len(post_dictionary) > len(list_of_keys):
+                message.append({ "message": "Looks like there are some unecessary keys" })
+            return message
 
         # Add a new animal to the list. Don't worry about
         # the orange squiggle, you'll define the create_animal
         # function next.
         if resource == "animals":
-            new_post = create_animal(post_body)
+            required_keys = ["name", "species", "locationId", "customerId", "status"]
+            error_messages = find_missing_keys(post_body, required_keys)
+            if len(error_messages) == 0:
+                response = create_animal(post_body)
+                self._set_headers(201)
+            else:
+                response = error_messages
+                self._set_headers(400)
         # Add a new location to the list
         if resource == "locations":
-            new_post = create_location(post_body)
+            required_keys = ["name", "address"]
+            error_messages = find_missing_keys(post_body, required_keys)
+            if len(error_messages) == 0:
+                response = create_location(post_body)
+                self._set_headers(201)
+            else:
+                response = error_messages
+                self._set_headers(400)
 
         # Add a new employee to the list
         if resource == "employees":
-            new_post = create_employee(post_body)
+            required_keys = ["name"]
+            error_messages = find_missing_keys(post_body, required_keys)
+            if len(error_messages) == 0:
+                response = create_employee(post_body)
+                self._set_headers(201)
+            else:
+                response = error_messages
+                self._set_headers(400)
 
         # Add new customer upon registration
         if resource == "customers":
-            new_post = create_customer(post_body)
+            required_keys = ["fullName", "email"]
+            error_messages = find_missing_keys(post_body, required_keys)
+            if len(error_messages) == 0:
+                response = create_customer(post_body)
+                self._set_headers(201)
+            else:
+                response = error_messages
+                self._set_headers(400)
 
         # Encode the new item and send in response
-        self.wfile.write(json.dumps(new_post).encode())
+        self.wfile.write(json.dumps(response).encode())
 
     # A method that handles any PUT request.
     def do_PUT(self):
