@@ -1,3 +1,6 @@
+from .location_requests import get_single_location
+from .customer_requests import get_single_customer
+
 ANIMALS = [
     {
         "id": 1,
@@ -43,6 +46,15 @@ def get_single_animal(id):
         # instead of the dot notation that JavaScript used.
         if animal["id"] == id:
             requested_animal = animal
+            # Get the location and customer that correspond to the foreign keys
+            animal_location = get_single_location(animal["locationId"])
+            animal_customer = get_single_customer(animal["customerId"])
+            # Add the foreign dictionaries to the requested animal dictionary
+            requested_animal["location"] = animal_location
+            requested_animal["customer"] = animal_customer
+            # Delete the foreign keys since they are no longer needed
+            del requested_animal["locationId"]
+            del requested_animal["customerId"]
 
     return requested_animal
 
