@@ -63,8 +63,6 @@ class HandleRequests(BaseHTTPRequestHandler):
     def do_GET(self):
         """Handles GET requests to the server
         """
-        # Set the response code to 'Ok'
-        self._set_headers(200)
         response = {}  # Default response
 
         # Your new console.log() that outputs to the terminal
@@ -78,28 +76,56 @@ class HandleRequests(BaseHTTPRequestHandler):
         if resource == "animals":
             if id is not None:
                 response = get_single_animal(id)
+                if response is not None:
+                    self._set_headers(200)
+                else:
+                    response = f'Animal {id} not found'
+                    self._set_headers(404)
 
             else:
                 response = get_all_animals()
+                # Set the response code to 'Ok'
+                self._set_headers(200)
 
         # Check if resource is locations
         if resource == "locations":
             if id is not None:
                 response = get_single_location(id)
+                if response is not None:
+                    self._set_headers(200)
+                else:
+                    self._set_headers(404)
+                    response = f'location {id} not found'
+
             else:
                 response = get_all_locations()
+                self._set_headers(200)
         # Check if resource is employees
         if resource == "employees":
             if id is not None:
                 response = get_single_employee(id)
+                if response is not None:
+                    self._set_headers(200)
+                else:
+                    self._set_headers(404)
+                    response = f'Employee {id} not found'
+
             else:
                 response = get_all_employees()
+                self._set_headers(200)
         # Check if resource is customers
         if resource == "customers":
             if id is not None:
                 response = get_single_customer(id)
+                if response is not None:
+                    self._set_headers(200)
+                else:
+                    self._set_headers(404)
+                    response = f'Customer {id} not found'
+
             else:
                 response = get_all_customers()
+                self._set_headers(200)
         # Send a JSON formatted string as a response
         self.wfile.write(json.dumps(response).encode())
 
