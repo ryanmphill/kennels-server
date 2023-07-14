@@ -20,7 +20,25 @@ from views import get_single_customer
 from views import create_customer
 from views import update_customer
 
-
+# Define a Dictionary to hold a reference to the functions needed
+method_mapper = {
+    "animals": {
+        "single": get_single_animal,
+        "all": get_all_animals
+    },
+    "locations": {
+        "single": get_single_location,
+        "all": get_all_locations
+    },
+    "employees": {
+        "single": get_single_employee,
+        "all": get_all_employees
+    },
+    "customers": {
+        "single": get_single_customer,
+        "all": get_all_customers
+    }
+}
 # Here's a class. It inherits from another class.
 # For now, think of a class as a container for functions that
 # work together for a common purpose. In this case, that
@@ -57,74 +75,39 @@ class HandleRequests(BaseHTTPRequestHandler):
 
         return (resource, id)  # This is a tuple
 
+    # Method to handle getting resources
+    def get_all_or_single(self, resource, id):
+        """Either get all of resource or single item"""
+        if id is not None:
+            response = method_mapper[resource]["single"](id)
+
+            if response is not None:
+                self._set_headers(200)
+            else:
+                self._set_headers(404)
+                response = f'# {id} in {resource} not found'
+        else:
+            if resource in ["animals", "customers", "employees", "locations"]:
+                self._set_headers(200)
+                response = method_mapper[resource]["all"]()
+            else:
+                self._set_headers(404)
+                response = f'{resource} does not exist in database'
+
+        return response
+
     # Here's a method on the class that overrides the parent's method.
     # It handles any GET request.
     def do_GET(self):
         """Handles GET requests to the server
         """
-        response = {}  # Default response
-
+        response = None  # Default response
         # Your new console.log() that outputs to the terminal
         print(self.path)
-
         # Parse the URL and capture the tuple that is returned
         (resource, id) = self.parse_url(self.path)
-
-        # Check if resource is animals
-        # It's an if..else statement
-        if resource == "animals":
-            if id is not None:
-                response = get_single_animal(id)
-                if response is not None:
-                    self._set_headers(200)
-                else:
-                    response = f'Animal {id} not found'
-                    self._set_headers(404)
-
-            else:
-                response = get_all_animals()
-                # Set the response code to 'Ok'
-                self._set_headers(200)
-
-        # Check if resource is locations
-        if resource == "locations":
-            if id is not None:
-                response = get_single_location(id)
-                if response is not None:
-                    self._set_headers(200)
-                else:
-                    self._set_headers(404)
-                    response = f'location {id} not found'
-
-            else:
-                response = get_all_locations()
-                self._set_headers(200)
-        # Check if resource is employees
-        if resource == "employees":
-            if id is not None:
-                response = get_single_employee(id)
-                if response is not None:
-                    self._set_headers(200)
-                else:
-                    self._set_headers(404)
-                    response = f'Employee {id} not found'
-
-            else:
-                response = get_all_employees()
-                self._set_headers(200)
-        # Check if resource is customers
-        if resource == "customers":
-            if id is not None:
-                response = get_single_customer(id)
-                if response is not None:
-                    self._set_headers(200)
-                else:
-                    self._set_headers(404)
-                    response = f'Customer {id} not found'
-
-            else:
-                response = get_all_customers()
-                self._set_headers(200)
+        # Try to get requested resource or dictionary and return response
+        response = self.get_all_or_single(resource, id)
         # Send a JSON formatted string as a response
         self.wfile.write(json.dumps(response).encode())
 
