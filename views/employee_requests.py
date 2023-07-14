@@ -53,6 +53,9 @@ def delete_employee(id):
     # Initial -1 value for employee index, in case one isn't found
     employee_index = -1
 
+    # Set a value to return that is not None if delete is successful
+    item_deleted = False
+
     # Iterate the EMPLOYEES list, but use enumerate() so that you
     # can access the index value of each item
     for index, employee in enumerate(EMPLOYEES):
@@ -63,6 +66,10 @@ def delete_employee(id):
     # If the employee was found, use pop(int) to remove it from list
     if employee_index >= 0:
         EMPLOYEES.pop(employee_index)
+        item_deleted = True
+
+    # Return if the dictionary was successfully deleted
+    return item_deleted
 
 def update_employee(id, new_employee):
     """Update an employee in the list"""

@@ -82,6 +82,9 @@ def delete_animal(id):
     # Initial -1 value for animal index, in case one isn't found
     animal_index = -1
 
+    # Set a value to return that is not None if delete is successful
+    item_deleted = False
+
     # Iterate the ANIMALS list, but use enumerate() so that you
     # can access the index value of each item
     for index, animal in enumerate(ANIMALS):
@@ -92,6 +95,10 @@ def delete_animal(id):
     # If the animal was found, use pop(int) to remove it from list
     if animal_index >= 0:
         ANIMALS.pop(animal_index)
+        item_deleted = True
+
+    # Return if the dictionary was successfully deleted
+    return item_deleted
 
 def update_animal(id, new_animal):
     """Update an animal in the list"""

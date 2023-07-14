@@ -50,6 +50,9 @@ def delete_location(id):
     # Initial -1 value for location index, in case one isn't found
     location_index = -1
 
+    # Set a value to return that is not None if delete is successful
+    item_deleted = False
+
     # Iterate the LOCATIONS list, but use enumerate() so that you
     # can access the index value of each item
     for index, location in enumerate(LOCATIONS):
@@ -60,6 +63,10 @@ def delete_location(id):
     # If the location was found, use pop(int) to remove it from list
     if location_index >= 0:
         LOCATIONS.pop(location_index)
+        item_deleted = True
+
+    # Return if the dictionary was successfully deleted
+    return item_deleted
 
 def update_location(id, new_location):
     """Update an location in the list"""

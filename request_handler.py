@@ -18,7 +18,6 @@ from views import update_employee
 from views import get_all_customers
 from views import get_single_customer
 from views import create_customer
-from views import delete_customer
 from views import update_customer
 
 
@@ -236,30 +235,53 @@ class HandleRequests(BaseHTTPRequestHandler):
 
     def do_DELETE(self):
         """Handle a DELETE request"""
-        # Set a 204 response code
-        self._set_headers(204)
+        response = ""
 
         # Parse the URL
         (resource, id) = self.parse_url(self.path)
 
         # Delete a single animal from the list
         if resource == "animals":
-            delete_animal(id)
-
+            animal_deleted = delete_animal(id)
+            if animal_deleted is True:
+                self._set_headers(204)
+            else:
+                self._set_headers(404)
+                message = {"message": f"Animal {id} not found"}
+                response = json.dumps(message)
         # Delete a location
         if resource == "locations":
-            delete_location(id)
+            location_deleted = delete_location(id)
+            if location_deleted is True:
+                self._set_headers(204)
+            else:
+                self._set_headers(404)
+                message = {"message": f"Location {id} not found"}
+                response = json.dumps(message)
 
         # Delete an employee
         if resource == "employees":
-            delete_employee(id)
+            employee_deleted = delete_employee(id)
+            if employee_deleted is True:
+                self._set_headers(204)
+            else:
+                self._set_headers(404)
+                message = {"message": f"Employee {id} not found"}
+                response = json.dumps(message)
 
         # Delete customer
         if resource == "customers":
-            delete_customer(id)
+            message = {"message": "Deleting customers requires contacting company directly"}
+            response = json.dumps(message)
+            self._set_headers(405)
+
+        if resource not in ["customers", "employees", "animals", "locations"]:
+            self._set_headers(404)
+            message = {"message": "Cannot find resource"}
+            response = json.dumps(message)
 
         # Encode the new animal and send in response
-        self.wfile.write("".encode())
+        self.wfile.write(response.encode())
 
     def _set_headers(self, status):
         # Notice this Docstring also includes information about the arguments passed to the function
