@@ -55,6 +55,7 @@ def get_single_animal(id):
             # Delete the foreign keys since they are no longer needed
             del requested_animal["locationId"]
             del requested_animal["customerId"]
+            break
 
     return requested_animal
 
