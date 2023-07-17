@@ -1,43 +1,13 @@
 import json
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from views import get_all_animals
-from views import get_single_animal
-from views import create_animal
-from views import delete_animal
-from views import update_animal
-from views import get_all_locations
-from views import get_single_location
-from views import create_location
-from views import delete_location
-from views import update_location
-from views import get_all_employees
-from views import get_single_employee
-from views import create_employee
-from views import delete_employee
-from views import update_employee
-from views import get_all_customers
-from views import get_single_customer
-from views import create_customer
-from views import update_customer
+from repository import all, retrieve, create, update, delete
 
-# Define a Dictionary to hold a reference to the functions needed
-method_mapper = {
-    "animals": {
-        "single": get_single_animal,
-        "all": get_all_animals
-    },
-    "locations": {
-        "single": get_single_location,
-        "all": get_all_locations
-    },
-    "employees": {
-        "single": get_single_employee,
-        "all": get_all_employees
-    },
-    "customers": {
-        "single": get_single_customer,
-        "all": get_all_customers
-    }
+# Define a Dictionary to hold a reference to the required keys for each resource
+required_keys = {
+    "animals": ["name", "species", "locationId", "customerId", "status"],
+    "locations": ["name", "address"],
+    "employees": ["name"],
+    "customers": ["fullName", "email"]
 }
 # Here's a class. It inherits from another class.
 # For now, think of a class as a container for functions that
@@ -79,7 +49,7 @@ class HandleRequests(BaseHTTPRequestHandler):
     def get_all_or_single(self, resource, id):
         """Either get all of resource or single item"""
         if id is not None:
-            response = method_mapper[resource]["single"](id)
+            response = retrieve(resource, id)
 
             if response is not None:
                 self._set_headers(200)
@@ -89,7 +59,7 @@ class HandleRequests(BaseHTTPRequestHandler):
         else:
             if resource in ["animals", "customers", "employees", "locations"]:
                 self._set_headers(200)
-                response = method_mapper[resource]["all"]()
+                response = all(resource)
             else:
                 self._set_headers(404)
                 response = f'{resource} does not exist in database'
@@ -138,50 +108,18 @@ class HandleRequests(BaseHTTPRequestHandler):
                 message.append({ "message": "Looks like there are some unecessary keys" })
             return message
 
-        # Add a new animal to the list. Don't worry about
-        # the orange squiggle, you'll define the create_animal
-        # function next.
-        if resource == "animals":
-            required_keys = ["name", "species", "locationId", "customerId", "status"]
-            error_messages = find_missing_keys(post_body, required_keys)
+        # Add a new item to the list
+        if resource in ["animals", "locations", "employees", "customers"]:
+            error_messages = find_missing_keys(post_body, required_keys[resource])
             if len(error_messages) == 0:
-                response = create_animal(post_body)
+                response = create(resource, post_body)
                 self._set_headers(201)
             else:
                 response = error_messages
                 self._set_headers(400)
-        # Add a new location to the list
-        if resource == "locations":
-            required_keys = ["name", "address"]
-            error_messages = find_missing_keys(post_body, required_keys)
-            if len(error_messages) == 0:
-                response = create_location(post_body)
-                self._set_headers(201)
-            else:
-                response = error_messages
-                self._set_headers(400)
-
-        # Add a new employee to the list
-        if resource == "employees":
-            required_keys = ["name"]
-            error_messages = find_missing_keys(post_body, required_keys)
-            if len(error_messages) == 0:
-                response = create_employee(post_body)
-                self._set_headers(201)
-            else:
-                response = error_messages
-                self._set_headers(400)
-
-        # Add new customer upon registration
-        if resource == "customers":
-            required_keys = ["fullName", "email"]
-            error_messages = find_missing_keys(post_body, required_keys)
-            if len(error_messages) == 0:
-                response = create_customer(post_body)
-                self._set_headers(201)
-            else:
-                response = error_messages
-                self._set_headers(400)
+        else:
+            response = {"message": f"the resource '{resource}' was not found"}
+            self._set_headers(404)
 
         # Encode the new item and send in response
         self.wfile.write(json.dumps(response).encode())
@@ -189,7 +127,6 @@ class HandleRequests(BaseHTTPRequestHandler):
     # A method that handles any PUT request.
     def do_PUT(self):
         """Handle put requests to the server"""
-        self._set_headers(204)
         content_len = int(self.headers.get('content-length', 0))
         post_body = self.rfile.read(content_len)
         post_body = json.loads(post_body)
@@ -197,24 +134,19 @@ class HandleRequests(BaseHTTPRequestHandler):
         # Parse the URL
         (resource, id) = self.parse_url(self.path)
 
-        # Update a single animal in the list
-        if resource == "animals":
-            update_animal(id, post_body)
+        # Set default empty response
+        response = ""
 
-        # Update Location
-        if resource == "locations":
-            update_location(id, post_body)
-
-        # Update employee
-        if resource == "employees":
-            update_employee(id, post_body)
-
-        # Update customer
-        if resource == "customers":
-            update_customer(id, post_body)
+        # Update a single item in the list
+        if resource in ["animals", "locations", "employees", "customers"]:
+            update(resource, id, post_body)
+            self._set_headers(204)
+        else:
+            response = json.dumps({"message": f"Resource '{resource}' not found"})
+            self._set_headers(404)
 
         # Encode the new animal and send in response
-        self.wfile.write("".encode())
+        self.wfile.write(response.encode())
 
     def do_DELETE(self):
         """Handle a DELETE request"""
@@ -223,45 +155,22 @@ class HandleRequests(BaseHTTPRequestHandler):
         # Parse the URL
         (resource, id) = self.parse_url(self.path)
 
-        # Delete a single animal from the list
-        if resource == "animals":
-            animal_deleted = delete_animal(id)
-            if animal_deleted is True:
+        # Delete a single item from the list
+        if resource in ["animals", "locations", "employees"]:
+            item_deleted = delete(resource, id)
+            if item_deleted is True:
                 self._set_headers(204)
             else:
                 self._set_headers(404)
-                message = {"message": f"Animal {id} not found"}
+                message = {"message": f"Item #{id} in '{resource}' not found"}
                 response = json.dumps(message)
-        # Delete a location
-        if resource == "locations":
-            location_deleted = delete_location(id)
-            if location_deleted is True:
-                self._set_headers(204)
-            else:
-                self._set_headers(404)
-                message = {"message": f"Location {id} not found"}
-                response = json.dumps(message)
-
-        # Delete an employee
-        if resource == "employees":
-            employee_deleted = delete_employee(id)
-            if employee_deleted is True:
-                self._set_headers(204)
-            else:
-                self._set_headers(404)
-                message = {"message": f"Employee {id} not found"}
-                response = json.dumps(message)
-
-        # Delete customer
-        if resource == "customers":
+        elif resource == "customers":
             message = {"message": "Deleting customers requires contacting company directly"}
             response = json.dumps(message)
             self._set_headers(405)
-
-        if resource not in ["customers", "employees", "animals", "locations"]:
+        else:
+            response = json.dumps({"message": f"Resource '{resource}' not found"})
             self._set_headers(404)
-            message = {"message": "Cannot find resource"}
-            response = json.dumps(message)
 
         # Encode the new animal and send in response
         self.wfile.write(response.encode())
