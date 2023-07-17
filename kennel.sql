@@ -68,5 +68,4 @@ SELECT
     a.status,
     a.location_id,
     a.customer_id
-FROM animal a
-WHERE a.id = 2
+FROM ANIMAL a
