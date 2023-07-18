@@ -93,6 +93,34 @@ def get_single_customer(id):
 
         return customer.__dict__
 
+def get_customers_by_email(email):
+    """Use query to get customer by email"""
+    with sqlite3.connect("./kennel.sqlite3") as conn:
+        conn.row_factory = sqlite3.Row
+        db_cursor = conn.cursor()
+
+        # Write the SQL query to get the information you want
+        db_cursor.execute("""
+        select
+            c.id,
+            c.name,
+            c.address,
+            c.email,
+            c.password
+        from Customer c
+        WHERE c.email = ?
+        """, ( email, ))
+
+        customers = []
+        dataset = db_cursor.fetchall()
+
+        for row in dataset:
+            customer = Customer(row['id'], row['name'], row['address'],
+                                row['email'] , row['password'])
+            customers.append(customer.__dict__)
+
+    return customers
+
 def create_customer(customer):
     """Function to add customer via POST request"""
     # Get the id value of the last customer in the list
