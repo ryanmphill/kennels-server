@@ -65,18 +65,33 @@ def get_all_customers():
     return customers
 
 
-def get_single_customer(requested_id):
-    """Use the id to get a single customer"""
+def get_single_customer(id):
+    """Function to return single item"""
+    with sqlite3.connect("./kennel.sqlite3") as conn:
+        conn.row_factory = sqlite3.Row
+        db_cursor = conn.cursor()
 
-    #Set the requested customer to None by default
-    requested_customer = None
+        # Use a ? parameter to inject a variable's value
+        # into the SQL statement.
+        db_cursor.execute("""
+        SELECT
+            a.id,
+            a.name,
+            a.address,
+            a.email,
+            a.password
+        FROM CUSTOMER a
+        WHERE a.id = ?
+        """, ( id, ))
 
-    #Iterate through the customer and find the requested customer
-    for customer in CUSTOMERS:
-        if customer["id"] == requested_id:
-            requested_customer = customer
+        # Load the single result into memory
+        data = db_cursor.fetchone()
 
-    return requested_customer
+        # Create an animal instance from the current row
+        customer = Customer(data['id'], data['name'], data['address'],
+                                data['email'], data['password'])
+
+        return customer.__dict__
 
 def create_customer(customer):
     """Function to add customer via POST request"""
