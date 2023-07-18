@@ -19,5 +19,5 @@ from .customer_requests import create_customer
 from .customer_requests import delete_customer
 from .customer_requests import update_customer
 from .customer_requests import get_customers_by_email
-from .animal_requests import get_animals_by_location
+from .animal_requests import get_animals_by_location, get_animals_by_status
 from .employee_requests import get_employees_by_location
