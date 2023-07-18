@@ -2,7 +2,7 @@ import json
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse, parse_qs
 from views import get_all_animals
-from views import get_single_animal
+from views import get_single_animal, get_animals_by_location
 from views import create_animal
 from views import delete_animal
 from views import update_animal
@@ -104,6 +104,10 @@ class HandleRequests(BaseHTTPRequestHandler):
             # see if the query dictionary has an email key
             if query.get('email') and resource == 'customers':
                 response = get_customers_by_email(query['email'][0])
+
+            # see if the query dictionary has a location_id key
+            if query.get('location_id') and resource == 'animals':
+                response = get_animals_by_location(query['location_id'][0])
 
         # Send a JSON formatted string as a response
         self.wfile.write(json.dumps(response).encode())

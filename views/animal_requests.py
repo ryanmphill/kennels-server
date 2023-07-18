@@ -102,6 +102,37 @@ def get_single_animal(id):
 
         return animal.__dict__
 
+def get_animals_by_location(location):
+    """Use query to get customer by email"""
+    with sqlite3.connect("./kennel.sqlite3") as conn:
+        conn.row_factory = sqlite3.Row
+        db_cursor = conn.cursor()
+
+        # Write the SQL query to get the information you want
+        db_cursor.execute("""
+        select
+            a.id,
+            a.name,
+            a.breed,
+            a.status,
+            a.location_id,
+            a.customer_id
+        from ANIMAL a
+        WHERE a.location_id = ?
+        """, ( location, ))
+
+        animals = []
+        dataset = db_cursor.fetchall()
+
+        for row in dataset:
+            animal = Animal(row['id'], row['name'], row['breed'],
+                            row['status'], row['location_id'],
+                            row['customer_id'])
+            animals.append(animal.__dict__)
+
+    return animals
+
+
 def create_animal(animal):
     """Function to add animal via POST request"""
 
