@@ -103,7 +103,7 @@ def get_single_animal(id):
         return animal.__dict__
 
 def get_animals_by_location(location):
-    """Use query to get customer by email"""
+    """Use query to get animal by location"""
     with sqlite3.connect("./kennel.sqlite3") as conn:
         conn.row_factory = sqlite3.Row
         db_cursor = conn.cursor()

@@ -12,7 +12,7 @@ from views import create_location
 from views import delete_location
 from views import update_location
 from views import get_all_employees
-from views import get_single_employee
+from views import get_single_employee, get_employees_by_location
 from views import create_employee
 from views import delete_employee
 from views import update_employee
@@ -108,6 +108,10 @@ class HandleRequests(BaseHTTPRequestHandler):
             # see if the query dictionary has a location_id key
             if query.get('location_id') and resource == 'animals':
                 response = get_animals_by_location(query['location_id'][0])
+
+            # see if the query dictionary has a location_id key
+            if query.get('location_id') and resource == 'employees':
+                response = get_employees_by_location(query['location_id'][0])
 
         # Send a JSON formatted string as a response
         self.wfile.write(json.dumps(response).encode())
