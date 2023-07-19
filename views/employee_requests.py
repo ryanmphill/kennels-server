@@ -63,8 +63,10 @@ def get_all_employees():
             employee.location = location.__dict__
             employees.append(employee.__dict__)
 
+            #############################################
             # Delete the keys that are no longer needed
-            del employee.location_id
+            # del employee.location_id
+            #############################################
 
     return employees
 
@@ -82,8 +84,12 @@ def get_single_employee(id):
             a.id,
             a.name,
             a.address,
-            a.location_id
+            a.location_id,
+            l.name location_name,
+            l.address location_address
         FROM EMPLOYEE a
+        JOIN Location l
+            ON l.id = a.location_id
         WHERE a.id = ?
         """, ( id, ))
 
@@ -93,6 +99,12 @@ def get_single_employee(id):
         # Create an employee instance from the current row
         employee = Employee(data['id'], data['name'], data['address'],
                                 data['location_id'])
+
+        # Create a Location instance from the current row to expand employees location
+        location = Location(data['location_id'], data['location_name'], data['location_address'])
+
+        # Add the dictionary representation of the location to the employee
+        employee.location = location.__dict__
 
         return employee.__dict__
 
