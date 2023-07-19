@@ -71,7 +71,7 @@ def get_single_location(id):
         # Load the single result into memory
         data = db_cursor.fetchone()
 
-        # Create an animal instance from the current row
+        # Create an location instance from the current row
         location = Location(data['id'], data['name'], data['address'])
 
         return location.__dict__
@@ -95,27 +95,49 @@ def create_location(location):
     return location
 
 def delete_location(id):
-    """Delete location from list"""
-    # Initial -1 value for location index, in case one isn't found
-    location_index = -1
+    """Delete location from database"""
+    with sqlite3.connect("./kennel.sqlite3") as conn:
+        db_cursor = conn.cursor()
 
-    # Iterate the LOCATIONS list, but use enumerate() so that you
-    # can access the index value of each item
-    for index, location in enumerate(LOCATIONS):
-        if location["id"] == id:
-            # Found the location. Store the current index.
-            location_index = index
+        db_cursor.execute("""
+        DELETE FROM LOCATION
+        WHERE id = ?
+        """, (id, ))
+        # Were any rows affected?
+        # Did the client send an `id` that exists?
+        rows_affected = db_cursor.rowcount
 
-    # If the location was found, use pop(int) to remove it from list
-    if location_index >= 0:
-        LOCATIONS.pop(location_index)
+    if rows_affected == 0:
+        # Forces 404 response by main module
+        result = False
+    else:
+        # Forces 204 response by main module
+        result = True
+
+    return result
 
 def update_location(id, new_location):
-    """Update an location in the list"""
-    # Iterate the LOCATIONS list, but use enumerate() so that
-    # you can access the index value of each item.
-    for index, location in enumerate(LOCATIONS):
-        if location["id"] == id:
-            # Found the location. Update the value.
-            LOCATIONS[index] = new_location
-            break
+    """Make an update to the location row"""
+    with sqlite3.connect("./kennel.sqlite3") as conn:
+        db_cursor = conn.cursor()
+
+        db_cursor.execute("""
+        UPDATE LOCATION
+            SET
+                name = ?,
+                address = ?
+        WHERE id = ?
+        """, (new_location['name'], new_location['address'], id, ))
+
+        # Were any rows affected?
+        # Did the client send an `id` that exists?
+        rows_affected = db_cursor.rowcount
+
+    if rows_affected == 0:
+        # Forces 404 response by main module
+        result = False
+    else:
+        # Forces 204 response by main module
+        result = True
+
+    return result

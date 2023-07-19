@@ -161,7 +161,6 @@ class HandleRequests(BaseHTTPRequestHandler):
     # A method that handles any PUT request.
     def do_PUT(self):
         """Handle put requests to the server"""
-        self._set_headers(204)
         content_len = int(self.headers.get('content-length', 0))
         post_body = self.rfile.read(content_len)
         post_body = json.loads(post_body)
@@ -169,50 +168,55 @@ class HandleRequests(BaseHTTPRequestHandler):
         # Parse the URL
         (resource, id) = self.parse_url(self.path)
 
+        success = False
+
         # Update a single animal in the list
         if resource == "animals":
-            update_animal(id, post_body)
-
+            success = update_animal(id, post_body)
         # Update Location
-        if resource == "locations":
-            update_location(id, post_body)
-
+        elif resource == "locations":
+            success = update_location(id, post_body)
         # Update employee
-        if resource == "employees":
-            update_employee(id, post_body)
-
+        elif resource == "employees":
+            success = update_employee(id, post_body)
         # Update customer
-        if resource == "customers":
-            update_customer(id, post_body)
+        elif resource == "customers":
+            success = update_customer(id, post_body)
 
+        if success:
+            self._set_headers(204)
+        else:
+            self._set_headers(404)
         # Encode the new animal and send in response
         self.wfile.write("".encode())
 
     def do_DELETE(self):
         """Handle a DELETE request"""
-        # Set a 204 response code
-        self._set_headers(204)
 
         # Parse the URL
         (resource, id) = self.parse_url(self.path)
 
+        success = False
+
         # Delete a single animal from the list
         if resource == "animals":
-            delete_animal(id)
-
+            success = delete_animal(id)
         # Delete a location
-        if resource == "locations":
-            delete_location(id)
-
+        elif resource == "locations":
+            success = delete_location(id)
         # Delete an employee
-        if resource == "employees":
-            delete_employee(id)
-
+        elif resource == "employees":
+            success = delete_employee(id)
         # Delete customer
-        if resource == "customers":
-            delete_customer(id)
+        elif resource == "customers":
+            success = delete_customer(id)
 
-        # Encode the new animal and send in response
+        if success:
+            self._set_headers(204)
+        else:
+            self._set_headers(404)
+
+        # Encode the new item and send in response
         self.wfile.write("".encode())
 
     def _set_headers(self, status):

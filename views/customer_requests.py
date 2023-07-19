@@ -87,7 +87,7 @@ def get_single_customer(id):
         # Load the single result into memory
         data = db_cursor.fetchone()
 
-        # Create an animal instance from the current row
+        # Create an customer instance from the current row
         customer = Customer(data['id'], data['name'], data['address'],
                                 data['email'], data['password'])
 
@@ -139,27 +139,52 @@ def create_customer(customer):
     return customer
 
 def delete_customer(id):
-    """Delete customer from list"""
-    # Initial -1 value for customer index, in case one isn't found
-    customer_index = -1
+    """Delete customer from database"""
+    with sqlite3.connect("./kennel.sqlite3") as conn:
+        db_cursor = conn.cursor()
 
-    # Iterate the CUSTOMERS list, but use enumerate() so that you
-    # can access the index value of each item
-    for index, customer in enumerate(CUSTOMERS):
-        if customer["id"] == id:
-            # Found the customer. Store the current index.
-            customer_index = index
+        db_cursor.execute("""
+        DELETE FROM CUSTOMER
+        WHERE id = ?
+        """, (id, ))
+        # Were any rows affected?
+        # Did the client send an `id` that exists?
+        rows_affected = db_cursor.rowcount
 
-    # If the customer was found, use pop(int) to remove it from list
-    if customer_index >= 0:
-        CUSTOMERS.pop(customer_index)
+    if rows_affected == 0:
+        # Forces 404 response by main module
+        result = False
+    else:
+        # Forces 204 response by main module
+        result = True
+
+    return result
 
 def update_customer(id, new_customer):
-    """Update an customer in the list"""
-    # Iterate the CUSTOMERS list, but use enumerate() so that
-    # you can access the index value of each item.
-    for index, customer in enumerate(CUSTOMERS):
-        if customer["id"] == id:
-            # Found the customer. Update the value.
-            CUSTOMERS[index] = new_customer
-            break
+    """Make an update to the customer row"""
+    with sqlite3.connect("./kennel.sqlite3") as conn:
+        db_cursor = conn.cursor()
+
+        db_cursor.execute("""
+        UPDATE CUSTOMER
+            SET
+                name = ?,
+                address = ?,
+                email = ?,
+                password = ?
+        WHERE id = ?
+        """, (new_customer['name'], new_customer['address'],
+              new_customer['email'], new_customer['password'], id, ))
+
+        # Were any rows affected?
+        # Did the client send an `id` that exists?
+        rows_affected = db_cursor.rowcount
+
+    if rows_affected == 0:
+        # Forces 404 response by main module
+        result = False
+    else:
+        # Forces 204 response by main module
+        result = True
+
+    return result
