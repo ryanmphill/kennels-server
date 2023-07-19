@@ -69,3 +69,5 @@ SELECT
     a.location_id,
     a.customer_id
 FROM ANIMAL a
+
+INSERT INTO `Animal` VALUES (null, "Daps", "Kennel", "Boxer", 2, 2);
